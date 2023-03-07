@@ -23,7 +23,7 @@ for cs in str.split(MAJORS_CIRCULATING_SUPPLY, '|')
 // Inputs
 
 periods = input(defval=800, title="Periods", group ="GENERAL")
-tickOpt = input.string( "close", "Price value expression", tooltip = "https://www.tradingview.com/pine-script-reference/v5/#var_hlcc4", options=["close", "hlcc4", "hl2", "hlc3", "ohlc4"], group ="GENERAL")
+tickOpt = input.string( "close", "Tick value expression", tooltip = "https://www.tradingview.com/pine-script-reference/v5/#var_hlcc4", options=["close", "hlcc4", "hl2", "hlc3", "ohlc4"], group ="GENERAL")
 
 reqTickExp = close
 
