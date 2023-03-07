@@ -1,0 +1,341 @@
+// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// Made by Stef @Scheplick 
+// Release April 9 2022
+indicator(title = "Majors Indices", overlay = false)
+
+//@version=5
+// import HeWhoMustNotBeNamed/Logger/1 as l
+// var logger = l.Logger.new(minimumLevel = 'DEBUG')
+// logger.init()
+type basketWeights
+    string cross
+    float weight
+
+
+
+MAJORS_CIRCULATING_SUPPLY = '23701418983000|14901769000000|1572861000000000|3614754000000|2852000000000|3417874000000|1159176000000|393400000000'
+majors = array.from("USD", "EUR", "JPY", "GBP", "AUD", "CAD", "CHF", "NZD")
+majorsCiruclatingSupply = array.new_float()
+for cs in str.split(MAJORS_CIRCULATING_SUPPLY, '|')
+    majorsCiruclatingSupply.push(str.tonumber(cs))
+
+
+// Inputs
+
+periods = input(defval=800, title="Periods", group ="GENERAL")
+tickOpt = input.string( "close", "Price value expression", tooltip = "https://www.tradingview.com/pine-script-reference/v5/#var_hlcc4", options=["close", "hlcc4", "hl2", "hlc3", "ohlc4"], group ="GENERAL")
+
+reqTickExp = close
+
+switch tickOpt
+    "close" =>
+       reqTickExp:= close 
+    "hlcc4" =>
+        reqTickExp:=hlcc4
+    "hl2" =>
+        reqTickExp:=hl2
+    "hlc3" =>
+        reqTickExp:=hlc3
+    "ohlc4" =>
+        reqTickExp:=ohlc4
+
+usdColor = input.color(color.blue, "USD", inline = "01", group ="DISPLAY OPTIONS")
+bool usdDisplay = input.bool( true, "display", inline = "01", group ="DISPLAY OPTIONS") 
+eurColor = input.color(color.orange, "EUR", inline = "02", group ="DISPLAY OPTIONS")
+bool eurDisplay = input.bool( true, "display", inline = "02", group ="DISPLAY OPTIONS") 
+jpyColor = input.color(color.yellow, "JPY", inline = "03", group ="DISPLAY OPTIONS")
+bool jpyDisplay = input.bool( true, "display", inline = "03", group ="DISPLAY OPTIONS") 
+gbpColor = input.color(color.green, "GBP", inline = "04", group ="DISPLAY OPTIONS")
+bool gbpDisplay = input.bool( true, "display", inline = "04", group ="DISPLAY OPTIONS") 
+audColor = input.color(color.purple, "AUD", inline = "05", group ="DISPLAY OPTIONS")
+bool audDisplay = input.bool( true, "display", inline = "05", group ="DISPLAY OPTIONS") 
+cadColor = input.color(color.red, "CAD", inline = "06", group ="DISPLAY OPTIONS")
+bool cadDisplay = input.bool( true, "display", inline = "06", group ="DISPLAY OPTIONS") 
+chfColor = input.color(color.aqua, "CHF", inline = "07", group ="DISPLAY OPTIONS")
+bool chfDisplay = input.bool( true, "display",  inline = "07", group ="DISPLAY OPTIONS") 
+nzdColor = input.color(color.gray, "NZD", inline = "08", group ="DISPLAY OPTIONS")
+bool nzdDisplay = input.bool( true, "display", inline = "08", group ="DISPLAY OPTIONS") 
+
+currColor = input.color(color.white, "CURR", inline = "09", group ="DISPLAY OPTIONS")
+bool currDisplay = input.bool( false, "display", inline = "09", group ="DISPLAY OPTIONS")
+
+usdEurSymbol = input.symbol("USDEUR", title="USD/EUR", group ="USD SYMBOLS")
+usdJpySymbol = input.symbol("USDJPY", title="USD/JPY", group ="USD SYMBOLS")
+usdGbpSymbol = input.symbol("USDGBP", title="USD/GBP", group ="USD SYMBOLS")
+usdAudSymbol = input.symbol("USDAUD", title="USD/AUD", group ="USD SYMBOLS")
+usdCadSymbol = input.symbol("USDCAD", title="USD/CAD", group ="USD SYMBOLS")
+usdChfSymbol = input.symbol("USDCHF", title="USD/CHF", group ="USD SYMBOLS")
+usdNzdSymbol = input.symbol("USDNZD", title="USD/NZD", group ="USD SYMBOLS")
+
+usdGbpValue = request.security(usdGbpSymbol, timeframe.period, reqTickExp, lookahead=barmerge.lookahead_on)
+usdEurValue = request.security(usdEurSymbol, timeframe.period, reqTickExp, lookahead=barmerge.lookahead_on)
+usdJpyValue = request.security(usdJpySymbol, timeframe.period, reqTickExp, lookahead=barmerge.lookahead_on)
+usdAudValue = request.security(usdAudSymbol, timeframe.period, reqTickExp, lookahead=barmerge.lookahead_on)
+usdCadValue = request.security(usdCadSymbol, timeframe.period, reqTickExp, lookahead=barmerge.lookahead_on)
+usdChfValue = request.security(usdChfSymbol, timeframe.period, reqTickExp, lookahead=barmerge.lookahead_on) 
+usdNzdValue = request.security(usdNzdSymbol, timeframe.period, reqTickExp, lookahead=barmerge.lookahead_on) 
+
+
+eurGbpSymbol = input.symbol("EURGBP", title="EUR/GBP", group ="EUR SYMBOLS")
+eurJpySymbol = input.symbol("EURJPY", title="EUR/JPY", group ="EUR SYMBOLS")
+eurAudSymbol = input.symbol("EURAUD", title="EUR/AUD", group ="EUR SYMBOLS")
+eurCadSymbol = input.symbol("EURCAD", title="EUR/CAD", group ="EUR SYMBOLS")
+eurChfSymbol = input.symbol("EURCHF", title="EUR/CHF", group ="EUR SYMBOLS")
+eurNzdSymbol = input.symbol("EURNZD", title="EUR/NZD", group ="EUR SYMBOLS")
+
+eurGbpValue = request.security(eurGbpSymbol, timeframe.period, reqTickExp, lookahead=barmerge.lookahead_on)
+eurJpyValue = request.security(eurJpySymbol, timeframe.period, reqTickExp, lookahead=barmerge.lookahead_on)
+eurAudValue = request.security(eurAudSymbol, timeframe.period, reqTickExp, lookahead=barmerge.lookahead_on)
+eurCadValue = request.security(eurCadSymbol, timeframe.period, reqTickExp, lookahead=barmerge.lookahead_on)
+eurChfValue = request.security(eurChfSymbol, timeframe.period, reqTickExp, lookahead=barmerge.lookahead_on) 
+eurNzdValue = request.security(eurChfSymbol, timeframe.period, reqTickExp, lookahead=barmerge.lookahead_on) 
+
+
+jpyGbpSymbol = input.symbol("JPYGBP", title="JPY/GBP", group ="JPY SYMBOLS")
+jpyAudSymbol = input.symbol("JPYAUD", title="JPY/AUD", group ="JPY SYMBOLS")
+jpyCadSymbol = input.symbol("JPYCAD", title="JPY/CAD", group ="JPY SYMBOLS")
+jpyChfSymbol = input.symbol("JPYCHF", title="JPY/CHF", group ="JPY SYMBOLS")
+jpyNzdSymbol = input.symbol("JPYNZD", title="JPY/NZD", group ="JPY SYMBOLS")
+
+jpyGbpValue = request.security(jpyGbpSymbol, timeframe.period, reqTickExp, lookahead=barmerge.lookahead_on)
+jpyAudValue = request.security(jpyAudSymbol, timeframe.period, reqTickExp, lookahead=barmerge.lookahead_on)
+jpyCadValue = request.security(jpyCadSymbol, timeframe.period, reqTickExp, lookahead=barmerge.lookahead_on)
+jpyChfValue = request.security(jpyChfSymbol, timeframe.period, reqTickExp, lookahead=barmerge.lookahead_on) 
+jpyNzdValue = request.security(jpyNzdSymbol, timeframe.period, reqTickExp, lookahead=barmerge.lookahead_on) 
+
+
+gbpAudSymbol = input.symbol("GBPAUD", title="GBP/AUD", group ="GBP SYMBOLS")
+gbpCadSymbol = input.symbol("GBPCAD", title="GBP/CAD", group ="GBP SYMBOLS")
+gbpChfSymbol = input.symbol("GBPCHF", title="GBP/CHF", group ="GBP SYMBOLS")
+gbpNzdSymbol = input.symbol("GBPNZD", title="GBP/NZD", group ="GBP SYMBOLS")
+
+gbpAudValue = request.security(gbpAudSymbol, timeframe.period, reqTickExp, lookahead=barmerge.lookahead_on)
+gbpCadValue = request.security(gbpCadSymbol, timeframe.period, reqTickExp, lookahead=barmerge.lookahead_on)
+gbpChfValue = request.security(gbpChfSymbol, timeframe.period, reqTickExp, lookahead=barmerge.lookahead_on) 
+gbpNzdValue = request.security(gbpNzdSymbol, timeframe.period, reqTickExp, lookahead=barmerge.lookahead_on) 
+
+audCadSymbol = input.symbol("AUDCAD", title="AUD/CAD", group ="AUD SYMBOLS")
+audChfSymbol = input.symbol("AUDCHF", title="AUD/CHF", group ="AUD SYMBOLS")
+audNzdSymbol = input.symbol("AUDNZD", title="AUD/NZD", group ="AUD SYMBOLS")
+
+audCadValue = request.security(audCadSymbol, timeframe.period, reqTickExp, lookahead=barmerge.lookahead_on)
+audChfValue = request.security(audChfSymbol, timeframe.period, reqTickExp, lookahead=barmerge.lookahead_on) 
+audNzdValue = request.security(audNzdSymbol, timeframe.period, reqTickExp, lookahead=barmerge.lookahead_on) 
+
+cadChfSymbol = input.symbol("CADCHF", title="CAD/CHF", group ="CAD SYMBOLS")
+cadNzdSymbol = input.symbol("CADNZD", title="CAD/NZD", group ="CAD SYMBOLS")
+
+
+cadChfValue = request.security(cadChfSymbol, timeframe.period, reqTickExp, lookahead=barmerge.lookahead_on) 
+cadNzdValue = request.security(cadNzdSymbol, timeframe.period, reqTickExp, lookahead=barmerge.lookahead_on) 
+
+chfNzdSymbol = input.symbol("CHFNZD", title="CHF/NZD", group ="CHF SYMBOLS")
+
+chfNzdValue = request.security(chfNzdSymbol, timeframe.period, reqTickExp, lookahead=barmerge.lookahead_on) 
+
+
+getTick(string _symbol) =>
+    float v = switch _symbol
+        "USDUSD" => 1
+        "USDEUR" => usdEurValue
+        "USDJPY" => usdJpyValue
+        "USDGBP" => usdGbpValue
+        "USDAUD" => usdAudValue
+        "USDCAD" => usdCadValue
+        "USDCHF" => usdChfValue 
+        "USDNZD" => usdNzdValue 
+        
+        "EUR" => 0
+        "EURUSD" => 1 / usdEurValue
+        "EURJPY" => eurJpyValue
+        "EURGBP" => eurGbpValue
+        "EURAUD" => eurAudValue
+        "EURCAD" => eurCadValue
+        "EURCHF" => eurChfValue 
+        "EURNZD" => eurNzdValue 
+
+        "JPY" => 0
+        "JPYUSD" => 1 / usdJpyValue
+        "JPYEUR" => 1 / eurJpyValue
+        "JPYGBP" => jpyGbpValue
+        "JPYAUD" => jpyAudValue
+        "JPYCAD" => jpyCadValue
+        "JPYCHF" => jpyChfValue 
+        "JPYNZD" => jpyNzdValue 
+
+        "GBP" => 0
+        "GBPUSD" => 1 / usdGbpValue
+        "GBPEUR" => 1 / eurGbpValue
+        "GBPJPY" => 1 / jpyGbpValue
+        "GBPAUD" => gbpAudValue
+        "GBPCAD" => gbpCadValue
+        "GBPCHF" => gbpChfValue 
+        "GBPNZD" => gbpNzdValue 
+
+
+        "AUD" => 0
+        "AUDUSD" => 1 / usdAudValue
+        "AUDEUR" => 1 / eurAudValue
+        "AUDJPY" => 1 / jpyAudValue
+        "AUDGBP" => 1 / gbpAudValue
+        "AUDCAD" => audCadValue
+        "AUDCHF" => audChfValue 
+        "AUDNZD" => audNzdValue 
+
+        "CAD" => 0
+        "CADUSD" => 1 / usdAudValue
+        "CADEUR" => 1 / eurCadValue
+        "CADJPY" => 1 / jpyCadValue
+        "CADGBP" => 1 / gbpCadValue
+        "CADAUD" => 1 / audCadValue
+        "CADCHF" => cadChfValue 
+        "CADNZD" => cadNzdValue 
+
+        "CHF" => 0
+        "CHFUSD" => 1 / usdChfValue
+        "CHFEUR" => 1 / eurChfValue
+        "CHFJPY" => 1 / jpyChfValue
+        "CHFGBP" => 1 / gbpChfValue
+        "CHFAUD" => 1 / audChfValue
+        "CHFCAD" => 1 / cadChfValue 
+        "CHFNZD" => chfNzdValue 
+
+        "NZD" => 0
+        "NZDUSD" => 1 / usdNzdValue
+        "NZDEUR" => 1 / eurNzdValue
+        "NZDJPY" => 1 / jpyNzdValue
+        "NZDGBP" => 1 / gbpNzdValue 
+        "NZDAUD" => 1 / audNzdValue
+        "NZDCAD" => 1 / cadNzdValue 
+        "NZDCHF" => 1 / chfNzdValue
+
+getCurrencyBasket(string currency) =>
+    arrBasket = array.new_string()
+    for c in majors
+        if c != currency
+            arrBasket.push(currency+c)
+    arrBasket
+
+getCrossMarketCap(string currency, string pair) =>
+    currencySupply = array.get(majorsCiruclatingSupply, majors.indexof(currency))
+    pairSupply = array.get(majorsCiruclatingSupply, majors.indexof(pair))
+    crossPrice = getTick(currency+pair)
+    currencyPriceUsd = getTick(currency+"USD")
+    currencyMarketCap = currencyPriceUsd * currencySupply
+    pairPriceUsd = getTick(pair+"USD")
+    pairMarketCap = pairPriceUsd * pairSupply
+    // logger.debug(pair + "_" + str.tostring(pairMarketCap)) 
+    currencyMarketCap + pairMarketCap
+
+getCurrencyBasketWeights(string currency) =>
+    basket = getCurrencyBasket(currency)
+    basketmarketCaps = array.new_float()
+    res = array.new<basketWeights>()
+
+    float totalMarketCap = 0
+    for c in basket 
+        pair = str.substring(c, 3)
+        pairMarketCap = getCrossMarketCap(currency, pair)
+        totalMarketCap += pairMarketCap
+        basketmarketCaps.push(pairMarketCap)
+        indexbasketWeights = basketWeights.new()
+        indexbasketWeights.cross := c
+        res.push(indexbasketWeights)
+
+    for i = 0 to 6
+        x = array.get(res, i)
+        x.weight := array.get(basketmarketCaps, i) * 100 / totalMarketCap   
+    res
+
+
+
+
+usdBasketWeights = getCurrencyBasketWeights("USD")
+float usdIndex = 0
+for bw in usdBasketWeights
+    usdIndex += getTick(bw.cross) * bw.weight
+
+usdIndexH =  ta.highest(usdIndex, periods)
+usdIndexL =  ta.lowest(usdIndex, periods)
+usdIndexNorm = (usdIndex - usdIndexL) / (usdIndexH - usdIndexL)
+
+eurBasketWeights = getCurrencyBasketWeights("EUR")
+float eurIndex = 0
+for bw in eurBasketWeights
+    eurIndex += getTick(bw.cross) * bw.weight
+    // logger.debug(bw.cross + "_" + str.tostring(bw.weight)) 
+eurIndexH =  ta.highest(eurIndex, periods)
+eurIndexL =  ta.lowest(eurIndex, periods)
+eurIndexNorm = (eurIndex - eurIndexL) / (eurIndexH - eurIndexL)
+
+jpyBasketWeights = getCurrencyBasketWeights("JPY")
+float jpyIndex = 0
+for bw in jpyBasketWeights
+    jpyIndex += getTick(bw.cross) * bw.weight
+
+jpyIndexH =  ta.highest(jpyIndex, periods)
+jpyIndexL =  ta.lowest(jpyIndex, periods)
+jpyIndexNorm = (jpyIndex - jpyIndexL) / (jpyIndexH - jpyIndexL)
+
+gbpBasketWeights = getCurrencyBasketWeights("GBP")
+float gbpIndex = 0
+for bw in gbpBasketWeights
+    gbpIndex += getTick(bw.cross) * bw.weight
+
+gbpIndexH =  ta.highest(gbpIndex, periods)
+gbpIndexL =  ta.lowest(gbpIndex, periods)
+gbpIndexNorm = (gbpIndex - gbpIndexL) / (gbpIndexH - gbpIndexL)
+
+audBasketWeights = getCurrencyBasketWeights("AUD")
+float audIndex = 0
+for bw in audBasketWeights
+    audIndex += getTick(bw.cross) * bw.weight
+
+audIndexH =  ta.highest(audIndex, periods)
+audIndexL =  ta.lowest(audIndex, periods)
+audIndexNorm = (audIndex - audIndexL) / (audIndexH - audIndexL)
+
+cadBasketWeights = getCurrencyBasketWeights("CAD")
+float cadIndex = 0
+for bw in cadBasketWeights
+    cadIndex += getTick(bw.cross) * bw.weight
+
+cadIndexH =  ta.highest(cadIndex, periods)
+cadIndexL =  ta.lowest(cadIndex, periods)
+cadIndexNorm = (cadIndex - cadIndexL) / (cadIndexH - cadIndexL)
+
+
+chfBasketWeights = getCurrencyBasketWeights("CHF")
+float chfIndex = 0
+for bw in chfBasketWeights
+    chfIndex += getTick(bw.cross) * bw.weight
+
+chfIndexH =  ta.highest(chfIndex, periods)
+chfIndexL =  ta.lowest(chfIndex, periods)
+chfIndexNorm = (chfIndex - chfIndexL) / (chfIndexH - chfIndexL)
+
+
+nzdBasketWeights = getCurrencyBasketWeights("NZD")
+float nzdIndex = 0
+for bw in nzdBasketWeights
+    nzdIndex += getTick(bw.cross) * bw.weight
+
+nzdIndexH =  ta.highest(nzdIndex, periods)
+nzdIndexL =  ta.lowest(nzdIndex, periods)
+nzdIndexNorm = (nzdIndex - nzdIndexL) / (nzdIndexH - nzdIndexL)
+
+currH = ta.highest(reqTickExp, periods)
+currL = ta.lowest(reqTickExp, periods)
+currNorm = (reqTickExp - currL) / (currH - currL)
+
+
+plot(usdIndexNorm, color=usdColor , title="USD", display = usdDisplay ? display.all : display.none)
+plot(eurIndexNorm, color=eurColor , title="EUR", display = eurDisplay ? display.all : display.none)
+plot(jpyIndexNorm, color=jpyColor, title="JPY", display = jpyDisplay ? display.all : display.none)
+plot(gbpIndexNorm, color=gbpColor , title="GBP", display = gbpDisplay ? display.all : display.none)
+plot(audIndexNorm, color=audColor , title="AUD", display = audDisplay ? display.all : display.none)
+plot(cadIndexNorm, color=cadColor, title="CAD", display = cadDisplay ? display.all : display.none)
+plot(chfIndexNorm, color=chfColor , title="CHF", display = chfDisplay ? display.all : display.none)
+plot(nzdIndexNorm, color=nzdColor , title="NZD", display = nzdDisplay ? display.all : display.none)
+
+plot(currNorm, color=currColor , title="CURRENT", display = currDisplay ? display.all : display.none)
