@@ -56,7 +56,7 @@ bool chfDisplay = input.bool( true, "display",  inline = "07", group ="DISPLAY O
 nzdColor = input.color(color.gray, "NZD", inline = "08", group ="DISPLAY OPTIONS")
 bool nzdDisplay = input.bool( true, "display", inline = "08", group ="DISPLAY OPTIONS") 
 
-currColor = input.color(color.white, "CURR", inline = "09", group ="DISPLAY OPTIONS")
+currColor = input.color(color.white, "CURRENT SYMBOL", inline = "09", group ="DISPLAY OPTIONS")
 bool currDisplay = input.bool( false, "display", inline = "09", group ="DISPLAY OPTIONS")
 
 usdEurSymbol = input.symbol("USDEUR", title="USD/EUR", group ="USD SYMBOLS")
