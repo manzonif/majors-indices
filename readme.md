@@ -1,0 +1,1 @@
+Custom Majors indices, calculated througs their market caps
