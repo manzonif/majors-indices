@@ -23,7 +23,7 @@ for cs in str.split(MAJORS_CIRCULATING_SUPPLY, '|')
 // Inputs
 
 periods = input(defval=800, title="Periods", group ="GENERAL")
-tickOpt = input.string( "close", "Tick value expression", tooltip = "https://www.tradingview.com/pine-script-reference/v5/#var_hlcc4", options=["close", "hlcc4", "hl2", "hlc3", "ohlc4"], group ="GENERAL")
+tickOpt = input.string( "close", "Price value expression", tooltip = "https://www.tradingview.com/pine-script-reference/v5/#var_hlcc4", options=["close", "hlcc4", "hl2", "hlc3", "ohlc4"], group ="GENERAL")
 
 reqTickExp = close
 
@@ -56,7 +56,7 @@ bool chfDisplay = input.bool( true, "display",  inline = "07", group ="DISPLAY O
 nzdColor = input.color(color.gray, "NZD", inline = "08", group ="DISPLAY OPTIONS")
 bool nzdDisplay = input.bool( true, "display", inline = "08", group ="DISPLAY OPTIONS") 
 
-currColor = input.color(color.white, "CURRENT SYMBOL", inline = "09", group ="DISPLAY OPTIONS")
+currColor = input.color(color.white, "CURR", inline = "09", group ="DISPLAY OPTIONS")
 bool currDisplay = input.bool( false, "display", inline = "09", group ="DISPLAY OPTIONS")
 
 usdEurSymbol = input.symbol("USDEUR", title="USD/EUR", group ="USD SYMBOLS")
@@ -248,61 +248,53 @@ getCurrencyBasketWeights(string currency) =>
     res
 
 
+normalize(index) =>
+    indexH =  ta.highest(index, periods) + (ta.highest(index, periods) / 100 * 1)
+    indexL =  ta.lowest(index, periods) - (ta.lowest(index, periods) / 100 * 1)
+    (index - indexL) / (indexH - indexL)
 
 
 usdBasketWeights = getCurrencyBasketWeights("USD")
 float usdIndex = 0
 for bw in usdBasketWeights
     usdIndex += getTick(bw.cross) * bw.weight
-
-usdIndexH =  ta.highest(usdIndex, periods)
-usdIndexL =  ta.lowest(usdIndex, periods)
-usdIndexNorm = (usdIndex - usdIndexL) / (usdIndexH - usdIndexL)
-
+// logger.debug(str.tostring(usdIndexL))  
+usdIndexNorm = normalize(usdIndex)
+// usdIndexNorm = usdIndex
 eurBasketWeights = getCurrencyBasketWeights("EUR")
 float eurIndex = 0
 for bw in eurBasketWeights
     eurIndex += getTick(bw.cross) * bw.weight
-    // logger.debug(bw.cross + "_" + str.tostring(bw.weight)) 
-eurIndexH =  ta.highest(eurIndex, periods)
-eurIndexL =  ta.lowest(eurIndex, periods)
-eurIndexNorm = (eurIndex - eurIndexL) / (eurIndexH - eurIndexL)
+
+eurIndexNorm = normalize(eurIndex) 
 
 jpyBasketWeights = getCurrencyBasketWeights("JPY")
 float jpyIndex = 0
 for bw in jpyBasketWeights
     jpyIndex += getTick(bw.cross) * bw.weight
 
-jpyIndexH =  ta.highest(jpyIndex, periods)
-jpyIndexL =  ta.lowest(jpyIndex, periods)
-jpyIndexNorm = (jpyIndex - jpyIndexL) / (jpyIndexH - jpyIndexL)
+jpyIndexNorm = normalize(jpyIndex)
 
 gbpBasketWeights = getCurrencyBasketWeights("GBP")
 float gbpIndex = 0
 for bw in gbpBasketWeights
     gbpIndex += getTick(bw.cross) * bw.weight
 
-gbpIndexH =  ta.highest(gbpIndex, periods)
-gbpIndexL =  ta.lowest(gbpIndex, periods)
-gbpIndexNorm = (gbpIndex - gbpIndexL) / (gbpIndexH - gbpIndexL)
+gbpIndexNorm = normalize(gbpIndex )
 
 audBasketWeights = getCurrencyBasketWeights("AUD")
 float audIndex = 0
 for bw in audBasketWeights
     audIndex += getTick(bw.cross) * bw.weight
 
-audIndexH =  ta.highest(audIndex, periods)
-audIndexL =  ta.lowest(audIndex, periods)
-audIndexNorm = (audIndex - audIndexL) / (audIndexH - audIndexL)
+audIndexNorm = normalize(audIndex)
 
 cadBasketWeights = getCurrencyBasketWeights("CAD")
 float cadIndex = 0
 for bw in cadBasketWeights
     cadIndex += getTick(bw.cross) * bw.weight
 
-cadIndexH =  ta.highest(cadIndex, periods)
-cadIndexL =  ta.lowest(cadIndex, periods)
-cadIndexNorm = (cadIndex - cadIndexL) / (cadIndexH - cadIndexL)
+cadIndexNorm = normalize(cadIndex)
 
 
 chfBasketWeights = getCurrencyBasketWeights("CHF")
@@ -310,9 +302,7 @@ float chfIndex = 0
 for bw in chfBasketWeights
     chfIndex += getTick(bw.cross) * bw.weight
 
-chfIndexH =  ta.highest(chfIndex, periods)
-chfIndexL =  ta.lowest(chfIndex, periods)
-chfIndexNorm = (chfIndex - chfIndexL) / (chfIndexH - chfIndexL)
+chfIndexNorm = normalize(chfIndex)
 
 
 nzdBasketWeights = getCurrencyBasketWeights("NZD")
@@ -320,13 +310,10 @@ float nzdIndex = 0
 for bw in nzdBasketWeights
     nzdIndex += getTick(bw.cross) * bw.weight
 
-nzdIndexH =  ta.highest(nzdIndex, periods)
-nzdIndexL =  ta.lowest(nzdIndex, periods)
-nzdIndexNorm = (nzdIndex - nzdIndexL) / (nzdIndexH - nzdIndexL)
+nzdIndexNorm = normalize(nzdIndex)
 
-currH = ta.highest(reqTickExp, periods)
-currL = ta.lowest(reqTickExp, periods)
-currNorm = (reqTickExp - currL) / (currH - currL)
+
+currNorm = normalize(reqTickExp)
 
 
 plot(usdIndexNorm, color=usdColor , title="USD", display = usdDisplay ? display.all : display.none)
