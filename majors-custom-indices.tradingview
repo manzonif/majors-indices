@@ -40,7 +40,7 @@ switch tickOpt
         reqTickExp:=ohlc4
 
 dxyColor = input.color(color.fuchsia, "DXY", inline = "00", group ="DISPLAY OPTIONS")
-bool cdxyDisplay = input.bool( false, "display", inline = "00", group ="DISPLAY OPTIONS")
+bool dxyDisplay = input.bool( false, "display", inline = "00", group ="DISPLAY OPTIONS")
 
 usdColor = input.color(color.blue, "USD", inline = "01", group ="DISPLAY OPTIONS")
 bool usdDisplay = input.bool( true, "display", inline = "01", group ="DISPLAY OPTIONS") 
