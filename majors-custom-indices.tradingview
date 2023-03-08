@@ -39,6 +39,9 @@ switch tickOpt
     "ohlc4" =>
         reqTickExp:=ohlc4
 
+dxyColor = input.color(color.fuchsia, "DXY", inline = "00", group ="DISPLAY OPTIONS")
+bool cdxyDisplay = input.bool( false, "display", inline = "00", group ="DISPLAY OPTIONS")
+
 usdColor = input.color(color.blue, "USD", inline = "01", group ="DISPLAY OPTIONS")
 bool usdDisplay = input.bool( true, "display", inline = "01", group ="DISPLAY OPTIONS") 
 eurColor = input.color(color.orange, "EUR", inline = "02", group ="DISPLAY OPTIONS")
@@ -56,9 +59,14 @@ bool chfDisplay = input.bool( true, "display",  inline = "07", group ="DISPLAY O
 nzdColor = input.color(color.gray, "NZD", inline = "08", group ="DISPLAY OPTIONS")
 bool nzdDisplay = input.bool( true, "display", inline = "08", group ="DISPLAY OPTIONS") 
 
+
+
+
 currColor = input.color(color.white, "CURR", inline = "09", group ="DISPLAY OPTIONS")
 bool currDisplay = input.bool( false, "display", inline = "09", group ="DISPLAY OPTIONS")
 
+dxySymbol = input.symbol("DXY", title="USD Index", group ="USD SYMBOLS")
+dxyValue = request.security(dxySymbol, timeframe.period, reqTickExp, lookahead=barmerge.lookahead_on)
 usdEurSymbol = input.symbol("USDEUR", title="USD/EUR", group ="USD SYMBOLS")
 usdJpySymbol = input.symbol("USDJPY", title="USD/JPY", group ="USD SYMBOLS")
 usdGbpSymbol = input.symbol("USDGBP", title="USD/GBP", group ="USD SYMBOLS")
@@ -315,7 +323,7 @@ nzdIndexNorm = normalize(nzdIndex)
 
 currNorm = normalize(reqTickExp)
 
-
+plot(normalize(dxyValue), color=dxyColor, title="DXY", display = dxyDisplay ? display.all : display.none)
 plot(usdIndexNorm, color=usdColor , title="USD", display = usdDisplay ? display.all : display.none)
 plot(eurIndexNorm, color=eurColor , title="EUR", display = eurDisplay ? display.all : display.none)
 plot(jpyIndexNorm, color=jpyColor, title="JPY", display = jpyDisplay ? display.all : display.none)
